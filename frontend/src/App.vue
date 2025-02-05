@@ -6,6 +6,10 @@
   </v-app>
 </template>
 
+<style>
+@import "../public/styles.css";
+</style>
+
 <script>
 import Proposal from './components/Proposal.vue';
 

@@ -1,8 +1,8 @@
 <template>
     <v-row class="h-100">
-      <v-col cols="12" class="d-flex flex-column">
-        <v-card class="flex-grow-1 overflow-y-auto" flat>
-          <v-list>
+      <v-col cols="12" class="d-flex flex-column justify-end">
+        <!-- <v-card class="flex-grow-1 overflow-y-auto" flat> -->
+          <v-list style="padding: 0px !important;">
             <v-list-item
               v-for="(message, index) in messages"
               :key="index"
@@ -20,24 +20,45 @@
               </v-list-item-content>
             </v-list-item>
           </v-list>
-        </v-card>
+        <!-- </v-card> -->
         
-        <v-card flat class="mt-4">
-          <v-textarea
-            v-model="newMessage"
-            label="Type your message"
-            outlined
-            rows="2"
-            auto-grow
-            hide-details
-            append-icon="mdi-send"
-            @click:append="sendMessage"
-            @keydown.enter="sendMessage"
-          ></v-textarea>
-        </v-card>
+        <div 
+          class="pt-3 px-3 pb-2 bg-grey-darken-4 rounded elevation"
+          style="border: 1px solid whitesmoke"
+        >
+          <div class="d-flex flex-column">
+            <textarea
+              v-model="newMessage" 
+              style="height: 72px; margin-bottom: 8px; outline: none; resize: none;"
+              @keypress.enter="sendMessage"
+            ></textarea>
+            <div class="d-flex justify-end">
+              <button class="rounded-circle" style="padding: 4px;" @click="sendMessage">
+                <i class="chevron-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
       </v-col>
     </v-row>
 </template>
+
+<style scoped>
+  .chevron-right {
+    background: url('../../public/arrow-next.svg');
+    background-repeat: no-repeat;
+    background-position: center;
+    width: 24px;
+    height: 24px;
+  }
+  button {
+    color: whitesmoke;
+    border: 1px solid whitesmoke;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+</style>
 
 <script>
 import { ChatService } from '@/services';
