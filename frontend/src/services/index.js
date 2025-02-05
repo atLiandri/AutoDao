@@ -1,0 +1,1 @@
+export * as ChatService from './modules/chat.service';

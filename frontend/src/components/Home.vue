@@ -1,8 +1,10 @@
 <template>
   <v-main>
-    <v-col cols="2">
-    </v-col>
-    <v-col cols="10" class="align-center">
+    <v-row class="h-100" style="margin: auto; max-width: 80%;">
+      <v-col cols="5">
+        <Chat/>
+      </v-col>
+      <v-col cols="7">
         <Proposal 
           actor="AI"
           title="My suggestion"
@@ -21,6 +23,20 @@
           subtitle="We increase the taxes"
           text="We would like you to pay more taxes!"
         />
-    </v-col>
+      </v-col>
+    </v-row>
   </v-main>
 </template>
+
+<script>
+import Chat from './Chat.vue';
+import Proposal from './Proposal.vue';
+
+export default {
+  name: 'Home',
+  components: {
+    Chat, 
+    Proposal
+  }
+}
+</script>
