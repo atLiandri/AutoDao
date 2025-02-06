@@ -1,10 +1,10 @@
 <template>
-  <v-main>
-    <v-row class="h-100" style="margin: auto; max-width: 80%;">
-      <v-col cols="5">
+  <v-main style="height: 100dvh">
+    <v-row style="margin: auto; max-width: 80%; height: 100%; padding-top: 32px;">
+      <v-col cols="5" class="h-100">
         <Chat/>
       </v-col>
-      <v-col cols="7">
+      <v-col cols="7" class="h-100"> 
         <Proposal 
           actor="AI"
           title="My suggestion"
