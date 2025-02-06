@@ -1,0 +1,31 @@
+/* Scrollbar for all scrollable elements */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #eeeeee;
+  border-radius: 10px;
+  transition: background 0.3s ease-in-out;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #eeeeee;
+}
+
+.elevation {
+  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease-in-out;
+}
+
+.elevation:focus-within {
+  box-shadow: rgba(50,44,43, 0.3) 0px 2px 15px 0px;
+  transform: translateY(2);
+  border-color: #7c7e81!important;
+}
