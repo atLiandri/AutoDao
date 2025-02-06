@@ -134,10 +134,19 @@ export default {
       this.newMessage = "";
       const result = await ChatService.chat(message);
 
-      this.messages.push({
-        text: result.parsed_content.response,
-        sender: "bot",
-      });
+      if (result.wallet_address) {
+        ChatService.create_proposal(result);
+
+        this.messages.push({
+          text: "I have created a proposal for you, mate. Cheers!",
+          sender: "bot",
+        });
+      } else {
+        this.messages.push({
+          text: result.parsed_content.response,
+          sender: "bot",
+        });
+      }
     },
   },
 };
