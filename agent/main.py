@@ -195,6 +195,18 @@ async def chat(request: ChatRequest):
                 print(agent_response)
                 
                 parsed_response = parse_agent_response(agent_response)
+
+                if parsed_response.wallet_address:
+                    action_response = agent_executor.deploy(
+                        parsed_response.wallet_address, 
+                        "0.8.19", 
+                        parse_contract(),
+                        "DAO"
+                    )
+
+                    parsed_response = parsed_response["parsed"]["response"] + "." + action_response
+                    
+
                 return ChatResponse(parsed_content=parsed_response)
             else:
                 raise HTTPException(status_code=500, detail="No response received from agent")
@@ -204,14 +216,7 @@ async def chat(request: ChatRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error in chat endpoint: {str(e)}")
 
-@app.get("/")
-async def root():
-    """Root endpoint that confirms the API is running."""
-    return {"status": "CDP Agent API is running"}
-
-@app.post("/create_proposal")
-async def create_proposal(request: ChatResponse):
-
+def parse_contract():
     with open("../contracts/DAO.sol", "r") as file:
         proposal_contract = file.read()
 
@@ -228,37 +233,13 @@ async def create_proposal(request: ChatResponse):
         },
     },
     solc_version="0.8.19")
+    return compiled_sol
 
-    # get bytecode
-    bytecode = compiled_sol["contracts"]["DAO.sol"]["SimpleDAO"]["evm"]["bytecode"]["object"]
-    # get abi
-    abi = json.loads(compiled_sol["contracts"]["DAO.sol"]["SimpleDAO"]["metadata"])["output"]["abi"]
 
-    # For connecting to ganache
-    w3 = Web3(Web3.HTTPProvider("http://127.0.0.1:8545"))
-    chain_id = 1337
-    address = "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1"
-    private_key = "0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d"
-    # Create the contract in Python
-    DAO = w3.eth.contract(abi=abi, bytecode=bytecode)
-    # Get the number of latest transaction
-    nonce = w3.eth.get_transaction_count(address)
-
-    # build transaction
-    transaction = DAO.constructor().build_transaction({
-        "chainId": chain_id,
-        "gasPrice": w3.eth.gas_price,
-        "from": address,
-        "nonce": nonce,
-    })
-    # Sign the transaction
-    sign_transaction = w3.eth.account.sign_transaction(transaction, private_key=private_key)
-
-    # Send the transaction
-    transaction_hash = w3.eth.send_raw_transaction(sign_transaction.raw_transaction)
-    
-    # Wait for the transaction to be mined, and get the transaction receipt
-    transaction_receipt = w3.eth.wait_for_transaction_receipt(transaction_hash)
+@app.get("/")
+async def root():
+    """Root endpoint that confirms the API is running."""
+    return {"status": "CDP Agent API is running"}
 
 
 if __name__ == "__main__":
