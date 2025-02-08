@@ -3,16 +3,17 @@
     future improvements: 
         1. add possibility for the proposals to change or add other AIs to the contract
         2. better manage proposal type
+        3. include startDate
 */
 pragma solidity ^0.8.19;
 
 contract SimpleDAO {
 
     uint16 public proposalCount = 0;
-    uint public memberCount = 0; 
+    uint public memberCount = 0;
     uint64 constant ONE_DAY = 86400;
-    uint8 MAX_MEMBERS_TO_ADD = 3;
-    address AIAddress; 
+    uint8 constant MAX_MEMBERS_TO_ADD = 3;
+    address AIAddress;
     address adminAddress;
 
     mapping(address => bool) public members;
@@ -23,7 +24,6 @@ contract SimpleDAO {
         uint64 endDate;
     }
     
-    enum ProposalType { Transaction, AddMembers }
     struct Proposal {
         address proposer;
         bool executed;
@@ -73,7 +73,7 @@ contract SimpleDAO {
     constructor() {
         adminAddress = msg.sender;
         members[msg.sender] = true;  // Initial creator is a member
-        unchecked{++memberCount;}
+        ++memberCount;
     }
 
     function _setProposalDates(uint64 startDate, uint64 endDate) internal view returns (uint64, uint64) {
@@ -173,35 +173,35 @@ contract SimpleDAO {
 
     // add a bunch of view functions
 
-    function hasVoted(uint16 _proposalId, address _voter) public view returns(bool) {
+    function hasVoted(uint16 _proposalId, address _voter) external view returns(bool) {
         return proposals[_proposalId].approvers[_voter];
     }
 
-    function approversOnProposal(uint16 _proposalId) public view returns(uint16) {
+    function approversOnProposal(uint16 _proposalId) external view returns(uint16) {
         return proposals[_proposalId].approvals;
     }
 
-    function proposedBy(uint16 _proposalId) public view returns(address) {
+    function proposedBy(uint16 _proposalId) external view returns(address) {
         return proposals[_proposalId].proposer;
     }  
 
-    function isExecuted(uint16 _proposalId) public view returns(bool){
+    function isExecuted(uint16 _proposalId) external view returns(bool){
         return  proposals[_proposalId].executed;
     }
 
-    function isAMember(address _candidate) public view returns(bool){
+    function isAMember(address _candidate) external view returns(bool){
         return members[_candidate];
     }
 
-    function getProposalActionTo(uint16 _proposalId) public view returns (address) {
+    function getProposalActionTo(uint16 _proposalId) external view returns (address) {
     return proposals[_proposalId].actionTo;
     }
 
-    function getProposalActionValue(uint16 _proposalId) public view returns (uint256) {
+    function getProposalActionValue(uint16 _proposalId) external view returns (uint256) {
         return proposals[_proposalId].actionValue;
     }
 
-    function getProposalMembersToAdd(uint16 _proposalId) public view returns (address[] memory) {
+    function getProposalMembersToAdd(uint16 _proposalId) external view returns (address[] memory) {
         return proposals[_proposalId].membersToAdd;
     }
 
