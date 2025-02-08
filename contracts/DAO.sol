@@ -1,24 +1,29 @@
 // SPDX-License-Identifier: MIT
 /*
-    second version, added createTransactionProposal and createAddMembersProposal 
+    future improvements: 
+        1. add possibility for the proposals to change or add other AIs to the contract
+        2. better manage proposal type
 */
 pragma solidity ^0.8.19;
 
 contract SimpleDAO {
 
     uint16 public proposalCount = 0;
-    uint public memberCount = 1;   // creator is member
+    uint public memberCount = 0; 
     uint64 constant ONE_DAY = 86400;
+    uint8 MAX_MEMBERS_TO_ADD = 3;
+    address AIAddress; 
+    address adminAddress;
 
     mapping(address => bool) public members;
     mapping(uint256 => Proposal) public proposals;
 
     struct ProposalParameters {
-        uint16 minApprovals;
         uint64 startDate;
         uint64 endDate;
     }
-
+    
+    enum ProposalType { Transaction, AddMembers }
     struct Proposal {
         address proposer;
         bool executed;
@@ -31,52 +36,80 @@ contract SimpleDAO {
         address[] membersToAdd;
     }
 
-    event ProposalCreated(uint id, address proposer);
+    event ProposalCreated(uint id, address proposer, uint64 startDate, uint64 endDate);
     event Voted(uint id, address voter, uint voteCount);
-    event ProposalExecuted(address actor, uint16 proposalId);
+    event ProposalExecuted(address actor, uint16 proposalId, string actionType, bool success);
+    event MembersAdded(address[] newMembers);
 
     modifier onlyMember() {
-        require(members[msg.sender], "Not a DAO member");
+        require(members[msg.sender], "Not a member of this DAO");
         _;
     }
 
-    modifier createProposal(uint16 _minApprovals, uint64 startDate, uint64 endDate) {
-        
-        if(startDate < block.timestamp){ // works also if startDate is not initialized
-             startDate = uint64(block.timestamp);
-        }
+    modifier onlyAIorMember() {
+        require(msg.sender==AIAddress || members[msg.sender], "You are not a member nor the artificial mind of this DAO");
+        _;
+    }
 
-        if (endDate < block.timestamp){ // works also if endDate is not initialized
-            endDate = startDate + 7*ONE_DAY;  // proposal lasts one week
+    modifier onlyAdmin() {
+            require(msg.sender == adminAddress, "You are not the admin");
+            _;
         }
-        
+    
+    modifier createProposal(uint64 startDate, uint64 endDate) {
+        (startDate, endDate) = _setProposalDates(startDate, endDate);        
         Proposal storage newProposal = proposals[proposalCount];
         newProposal.proposer = msg.sender;
         newProposal.executed = false;
         newProposal.actionSuccess = false;
         newProposal.approvals = 0;
-        newProposal.parameters.minApprovals = _minApprovals;
+        newProposal.parameters.startDate = startDate;
+        newProposal.parameters.endDate = endDate;
         _;
         unchecked {++ proposalCount;}
-        emit ProposalCreated(proposalCount, msg.sender);
+        emit ProposalCreated(proposalCount, msg.sender, startDate, endDate);
     }
 
     constructor() {
+        adminAddress = msg.sender;
         members[msg.sender] = true;  // Initial creator is a member
+        unchecked{++memberCount;}
     }
 
+    function _setProposalDates(uint64 startDate, uint64 endDate) internal view returns (uint64, uint64) {
+        if (startDate < block.timestamp) {
+            startDate = uint64(block.timestamp);
+        }
+        if (endDate < block.timestamp) {
+            endDate = startDate + 7 * ONE_DAY;
+        }
+        return (startDate, endDate);
+    }
 
-    function createTransactionProposal(uint16 _minApprovals, uint64 startDate, uint64 endDate, address _to, uint256 _value) 
-        public  createProposal(_minApprovals, startDate, endDate) onlyMember {
+    function setAIAddress (address _AIAddress) public onlyAdmin {
+        AIAddress = _AIAddress;
+    }
+
+    function setAdminAddress (address _adminAddress) public onlyAdmin {
+        adminAddress = _adminAddress;
+    }
+
+    function createTransactionProposal(uint64 endDate, address _to, uint256 _value) 
+        public  createProposal(0,endDate) onlyAIorMember {
+        require(_to != address(0), "Invalid recipient address");
+        require(_value <= address(this).balance, "Insufficient contract balance");
 
         proposals[proposalCount].actionTo = _to;
         proposals[proposalCount].actionValue = _value;
 
     }
 
-    function createAddMembersProposal(uint16 _minApprovals, uint64 startDate, uint64 endDate, address[] memory _newMembers) 
-        public  createProposal(_minApprovals, startDate, endDate) onlyMember {
-
+    function createAddMembersProposal( uint64 endDate, address[] memory _newMembers) 
+        public  createProposal(0, endDate) onlyMember {
+        require(_newMembers.length <= MAX_MEMBERS_TO_ADD, "Too many members to add");
+        for (uint i = 0; i < _newMembers.length; i++) {
+            require(_newMembers[i] != address(0), "0 address is an invalid member address");
+        }
         proposals[proposalCount].membersToAdd = _newMembers;
 
     }  
@@ -86,49 +119,57 @@ contract SimpleDAO {
 
         require(!proposals[_proposalId].executed, "Proposal already executed");
 
-        require(proposals[_proposalId].parameters.endDate <  uint64(block.timestamp), "Too late to vote");
+        require(
+            proposals[_proposalId].parameters.startDate <= uint64(block.timestamp) &&
+            proposals[_proposalId].parameters.endDate >= uint64(block.timestamp),
+            "Voting is not allowed at this time"
+        );
 
-        proposals[_proposalId].approvals++;
+        unchecked{++proposals[_proposalId].approvals;}
         proposals[_proposalId].approvers[msg.sender] = true;
 
         emit Voted(_proposalId, msg.sender, proposals[_proposalId].approvals);
 
-        if(proposals[_proposalId].approvals >= proposals[_proposalId].parameters.minApprovals){ //add option to run this by backend if end date is reached
-                _executeProposal(_proposalId); 
+        if (proposals[_proposalId].approvals >= (memberCount + 1) / 2) { //if more than half of the current members voted
+            _executeProposal(_proposalId);
         }
+       
     }
 
 
     function _executeProposal(uint16 _proposalId) internal {
-        
-        // add possibility to execute multiple actions?
         address[] memory membersToAdd = proposals[_proposalId].membersToAdd;
         if (membersToAdd.length!=0){
             _addNewMembers(membersToAdd);
         }
         uint256 actionValue = proposals[_proposalId].actionValue;
         address payable actionTo = payable(proposals[_proposalId].actionTo);
+
+        proposals[_proposalId].executed = true;
+        bool _actionSuccess = false;
         if (actionTo!=address(0) && actionValue!=0){
-            actionTo.transfer(actionValue);
+            (_actionSuccess, ) = actionTo.call{value: actionValue}("");
+            proposals[_proposalId].actionSuccess = _actionSuccess;
         }
 
-        emit ProposalExecuted({  // add action to event?
-            actor: msg.sender,
-            proposalId: _proposalId
-        });
-        proposals[_proposalId].executed = true;
+        emit ProposalExecuted(msg.sender, _proposalId, membersToAdd.length > 0 ? "AddMembers" : "Transaction", _actionSuccess);
 
     }
 
     function _addNewMembers(address[] memory _newMembers) internal { // unused at the moment, will be modified to be callable via action 
-        for (uint i = 0; i < _newMembers.length; i++) {
+        for (uint i = 0; i < _newMembers.length;) {
             if (!members[_newMembers[i]]){
                 memberCount++;
             }
             members[_newMembers[i]] = true;
-            
+            unchecked {++i;}   
         }
+        emit MembersAdded(_newMembers);
     }
+
+    function halfRoundingUp(uint x) public pure returns (uint256) {
+    return (x + 1) / 2;
+}
 
     // add a bunch of view functions
 
@@ -150,6 +191,18 @@ contract SimpleDAO {
 
     function isAMember(address _candidate) public view returns(bool){
         return members[_candidate];
+    }
+
+    function getProposalActionTo(uint16 _proposalId) public view returns (address) {
+    return proposals[_proposalId].actionTo;
+    }
+
+    function getProposalActionValue(uint16 _proposalId) public view returns (uint256) {
+        return proposals[_proposalId].actionValue;
+    }
+
+    function getProposalMembersToAdd(uint16 _proposalId) public view returns (address[] memory) {
+        return proposals[_proposalId].membersToAdd;
     }
 
     // To receive Ether to the treasury
