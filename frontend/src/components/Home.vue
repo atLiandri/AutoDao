@@ -6,30 +6,12 @@
       </v-col>
       <v-col cols="7" class="h-100">
         <Proposal 
-          v-for="proposal in proposals"
+          v-for="proposal in this.proposals"
           actor="AI"
-          :title="proposal.title"
-          :subtitle="proposal.subtitle"
-          :text="proposal.text"
+          :title="proposal.parsed_content.title"
+          :subtitle="proposal.parsed_content.subtitle"
+          :text="proposal.parsed_content.text"
         /> 
-        <!-- <Proposal 
-          actor="AI"
-          title="My suggestion"
-          subtitle="Kill all humans!"
-          text="A lot of killing here and there!"
-        />
-        <Proposal 
-          actor="User"
-          title="Wall Painting"
-          subtitle="Reeeed"
-          text="Can we paint the walls red?"
-        />
-        <Proposal 
-          actor="Gov"
-          title="Taxes"
-          subtitle="We increase the taxes"
-          text="We would like you to pay more taxes!"
-        /> -->
       </v-col>
     </v-row>
   </v-main>
@@ -46,13 +28,12 @@ export default {
     Chat, 
     Proposal
   },
-  data() {
-    return {
-      proposals: [],
-    }
-  },
+  data: () => ({
+    proposals: [],
+  }),
   async created() {
-    this.proposals = await ProposalService.getProposals();
+    const data = await ProposalService.getProposals();
+    this.proposals.splice(0, this.proposals.length, ...data);
   }
 }
 </script>

@@ -1,5 +1,9 @@
-import { axiosClient } from "../axios";
+import { backendAxiosClient } from "../axios";
 
 export const proposals = () => {
-    return axiosClient.get('/proposals')
+    return backendAxiosClient.get('/api/proposals');
+}
+
+export const proposal = (message) => {
+    return backendAxiosClient.post('/api/proposals', message);
 }
