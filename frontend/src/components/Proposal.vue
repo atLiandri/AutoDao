@@ -19,17 +19,16 @@
       {{ text }}
     </v-card-text>
     <v-card-actions class="align-right justify-end">
-      <v-btn>
+      <v-btn @click="voteOnProposal" :disabled="disabled">
         Accept
-      </v-btn>
-      <v-btn>
-        Reject
       </v-btn>
     </v-card-actions>
   </v-card>
 </template>
 
 <script>
+import { ProposalService } from '@/services';
+
 export default {
   name: "Proposal",
   props: {
@@ -50,6 +49,9 @@ export default {
       default: ""
     }
   },
+  data: () => ({
+    disabled: false
+  }),
   computed: {
     getIcon() {
       switch(this.actor) {
@@ -60,6 +62,12 @@ export default {
         default:
           return "mdi-account";  
       }
+    }
+  },
+  methods: {
+    async voteOnProposal() {
+      await ProposalService.postProposal({proposalId: 0});
+      this.disabled = true;
     }
   }
 }

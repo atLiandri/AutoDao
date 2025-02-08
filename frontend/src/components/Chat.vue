@@ -112,7 +112,7 @@ export default {
       this.newMessage = "";
       const result = await ChatService.chat(message);
 
-      if (result.wallet_address) {
+      if (result.transaction_hash) {
         ChatService.create_proposal(result);
 
         this.messages.push({

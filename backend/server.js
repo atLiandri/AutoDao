@@ -3,15 +3,42 @@ import express from "express";
 import { MongoClient, ServerApiVersion } from "mongodb";
 import cors from "cors";
 import dotenv from "dotenv";
+import { ethers } from "ethers";
 
 dotenv.config();
 const app = express();
 app.use(express.json());
 app.use(cors());
 
+const privateKey = process.env.PRIVATE_KEY;
 const uri = process.env.MONGO_URI;
+const INFURA_API_KEY = process.env.API_KEY;
 
-console.log(uri);
+const provider = new ethers.providers.JsonRpcProvider(`https://base-sepolia.infura.io/v3/${INFURA_API_KEY}`);
+const wallet = new ethers.Wallet(privateKey, provider);
+
+const contractAddress = "0xb85D13A091BBe0304d67EE071E5d5421ACd28667"; 
+const contractABI = [
+	{
+		"inputs": [
+			{
+				"internalType": "uint16",
+				"name": "_proposalId",
+				"type": "uint16"
+			}
+		],
+		"name": "voteOnProposal",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+];
+
+const contract = new ethers.Contract(
+  contractAddress, 
+  contractABI, 
+  wallet
+);
 
 const client = new MongoClient(uri, {
   serverApi: {
@@ -52,7 +79,21 @@ app.post("/api/proposals", async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: "Failed to update data" });
   }
-})
+});
+
+app.post("/api/vote", async (req, res) => {
+  try {
+    const d = await provider.getBalance('0xb85D13A091BBe0304d67EE071E5d5421ACd28667');
+    // const proposal = await contract.voteOnProposal(req.body.proposalId, {
+    //   gasPrice: ethers.utils.parseUnits('10', 'gwei'),
+    // });
+    res.status(200).json({ proposal: d });
+  } catch(err) {
+    console.log(err);
+    res.status(500).json({ error: "Failed to update data" });
+  }
+});
+
 
 // Start Server
 const PORT = process.env.PORT || 5000;
