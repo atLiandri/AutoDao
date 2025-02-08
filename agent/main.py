@@ -38,12 +38,10 @@ PRIVATE_KEY = CDP_API_KEY_PRIVATE_KEY.replace('\\n', '\n')
 Cdp.configure(CDP_API_KEY_NAME, PRIVATE_KEY)
 
 # Contract configuration
-CONTRACT_ADDRESS = "0x2866Aaa30e53B80c58920df660097f8845cD2f83"
+CONTRACT_ADDRESS = "0xb85D13A091BBe0304d67EE071E5d5421ACd28667"
 CONTRACT_ABI = [
     {
         "inputs": [
-            {"internalType": "uint16", "name": "_minApprovals", "type": "uint16"},
-            {"internalType": "uint64", "name": "startDate", "type": "uint64"},
             {"internalType": "uint64", "name": "endDate", "type": "uint64"},
             {"internalType": "address", "name": "_to", "type": "address"},
             {"internalType": "uint256", "name": "_value", "type": "uint256"}
@@ -248,8 +246,6 @@ async def create_transaction_proposal(parsed_response: ParsedResponse) -> Option
         end_time = current_time + (24 * 60 * 60)  # 24 hours from now
 
         transaction_data = {
-            '_minApprovals': "2",
-            'startDate': str(current_time),
             'endDate': str(end_time),
             '_to': parsed_response.wallet_address,
             '_value': eth_to_wei(parsed_response.amount)
