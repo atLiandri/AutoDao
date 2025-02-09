@@ -83,7 +83,8 @@ app.post("/api/proposals", async (req, res) => {
 
 app.post("/api/vote", async (req, res) => {
   try {
-    const proposal = await contract.voteOnProposal(req.body.proposalId, {
+    const {proposalId } = req.body;
+    const proposal = await contract.voteOnProposal(proposalId, {
       gasPrice: ethers.utils.parseUnits('10', 'gwei'),
     });
     res.status(200).json({ proposal: proposal });

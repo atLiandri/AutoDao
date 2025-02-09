@@ -10,7 +10,9 @@
   },
   "dependencies": {
     "@mdi/font": "7.4.47",
+    "@metamask/detect-provider": "^2.0.0",
     "axios": "^1.7.9",
+    "ethers": "^6.13.5",
     "mongodb": "^6.13.0",
     "roboto-fontface": "*",
     "vue": "^3.4.31",

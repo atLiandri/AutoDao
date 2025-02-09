@@ -27,7 +27,8 @@
 </template>
 
 <script>
-import { ProposalService } from '@/services';
+import detectEthereumProvider from "@metamask/detect-provider"
+import { ethers } from 'ethers';
 
 export default {
   name: "Proposal",
@@ -66,8 +67,37 @@ export default {
   },
   methods: {
     async voteOnProposal() {
-      await ProposalService.postProposal({proposalId: 1});
-      this.disabled = true;
+      const provider = await detectEthereumProvider();
+      if (provider && provider === window.ethereum) {
+        const ethersProvider = new ethers.BrowserProvider(provider);
+        const contractAddress = "0x9AF19d7C1d866543816a2A649E32Ab86b0Be3C39"; 
+        const contractABI = [
+          {
+            "inputs": [
+              {
+                "internalType": "uint16",
+                "name": "_proposalId",
+                "type": "uint16"
+              }
+            ],
+            "name": "voteOnProposal",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+          },
+        ];
+        const contract = new ethers.Contract(
+          contractAddress, 
+          contractABI, 
+          ethersProvider.getSigner()
+        );
+        await contract.voteOnProposal(1, {
+          gasPrice: ethers.parseUnits('10', 'gwei'),
+        });
+        this.disabled = true;
+      } else {
+        console.log("Please install MetaMask!")
+      }
     }
   }
 }
