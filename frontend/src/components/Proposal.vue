@@ -86,10 +86,11 @@ export default {
             "type": "function"
           },
         ];
+        const signer = await ethersProvider.getSigner();
         const contract = new ethers.Contract(
           contractAddress, 
           contractABI, 
-          ethersProvider.getSigner()
+          signer
         );
         await contract.voteOnProposal(1, {
           gasPrice: ethers.parseUnits('10', 'gwei'),
