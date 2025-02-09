@@ -1,6 +1,6 @@
 import Axios from "axios";
 
-let baseURL = 'https://autodao.onrender.com/';
+let baseURL = 'https://autodao.onrender.com';
 let backendURL = 'http://localhost:5000';
 
 const axiosConfig = {

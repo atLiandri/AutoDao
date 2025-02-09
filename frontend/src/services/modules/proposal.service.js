@@ -5,7 +5,7 @@ export const getProposals = async () => {
     return data;
 }
 
-export const postProposal = async (message) => {
-    const { data } = await ProposalApi.proposal(message);
+export const postProposal = async (proposal) => {
+    const { data } = await ProposalApi.proposal(proposal);
     return data;
 }

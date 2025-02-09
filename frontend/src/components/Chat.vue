@@ -92,7 +92,7 @@ button {
 </style>
 
 <script>
-import { ChatService } from "@/services";
+import { ChatService, ProposalService } from "@/services";
 
 export default {
   name: "Chat",
@@ -102,6 +102,7 @@ export default {
       newMessage: "",
     };
   },
+  emits: ['proposal'],
   methods: {
     async sendMessage() {
       if (this.newMessage.trim() === "") return;
@@ -113,12 +114,13 @@ export default {
       const result = await ChatService.chat(message);
 
       if (result.transaction_hash) {
-        ChatService.create_proposal(result);
+        ProposalService.postProposal(result);
 
         this.messages.push({
           text: "I have created a proposal for you, mate. Cheers!",
           sender: "bot",
         });
+        this.$emit("proposal", result);
       } else {
         this.messages.push({
           text: result.parsed_content.response,
