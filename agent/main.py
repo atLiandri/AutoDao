@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional, Type
 import os
@@ -22,6 +23,16 @@ load_dotenv()
 
 # Initialize FastAPI app
 app = FastAPI(title="CDP Agent API")
+
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # CDP Configuration
 CDP_API_KEY_NAME = os.getenv('CDP_API_KEY_NAME')

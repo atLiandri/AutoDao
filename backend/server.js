@@ -17,7 +17,7 @@ const INFURA_API_KEY = process.env.API_KEY;
 const provider = new ethers.providers.JsonRpcProvider(`https://base-sepolia.infura.io/v3/${INFURA_API_KEY}`);
 const wallet = new ethers.Wallet(privateKey, provider);
 
-const contractAddress = "0xb85D13A091BBe0304d67EE071E5d5421ACd28667"; 
+const contractAddress = "0x9AF19d7C1d866543816a2A649E32Ab86b0Be3C39"; 
 const contractABI = [
 	{
 		"inputs": [
@@ -83,11 +83,10 @@ app.post("/api/proposals", async (req, res) => {
 
 app.post("/api/vote", async (req, res) => {
   try {
-    const d = await provider.getBalance('0xb85D13A091BBe0304d67EE071E5d5421ACd28667');
-    // const proposal = await contract.voteOnProposal(req.body.proposalId, {
-    //   gasPrice: ethers.utils.parseUnits('10', 'gwei'),
-    // });
-    res.status(200).json({ proposal: d });
+    const proposal = await contract.voteOnProposal(req.body.proposalId, {
+      gasPrice: ethers.utils.parseUnits('10', 'gwei'),
+    });
+    res.status(200).json({ proposal: proposal });
   } catch(err) {
     console.log(err);
     res.status(500).json({ error: "Failed to update data" });

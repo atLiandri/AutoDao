@@ -66,7 +66,7 @@ export default {
   },
   methods: {
     async voteOnProposal() {
-      await ProposalService.postProposal({proposalId: 0});
+      await ProposalService.postProposal({proposalId: 1});
       this.disabled = true;
     }
   }
