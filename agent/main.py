@@ -38,7 +38,7 @@ PRIVATE_KEY = CDP_API_KEY_PRIVATE_KEY.replace('\\n', '\n')
 Cdp.configure(CDP_API_KEY_NAME, PRIVATE_KEY)
 
 # Contract configuration
-CONTRACT_ADDRESS = "0xBda5Ef6f902c589862ca6e3079f835e527c80D06"
+CONTRACT_ADDRESS = "0x1386a113db01838db5730edeb50e80473879209a"
 CONTRACT_ABI = [
     {
         "inputs": [
